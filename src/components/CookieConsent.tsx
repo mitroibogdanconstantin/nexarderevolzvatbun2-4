@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Check, Settings, Info } from 'lucide-react';
+import { X, Check, Settings, Info, Cookie, Shield, BarChart3, Target } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 interface CookiePreferences {
@@ -23,17 +23,22 @@ const CookieConsent: React.FC = () => {
   useEffect(() => {
     const hasConsent = localStorage.getItem('cookieConsent');
     if (!hasConsent) {
-      setIsVisible(true);
+      // Arătăm banner-ul după o scurtă întârziere pentru o experiență mai bună
+      const timer = setTimeout(() => {
+        setIsVisible(true);
+      }, 800);
+      
+      return () => clearTimeout(timer);
     } else {
       // Încarcă preferințele salvate
       try {
-        const savedPreferences = JSON.parse(localStorage.getItem('cookiePreferences') || '{}');
-        setPreferences({
-          essential: true, // Întotdeauna true
-          analytics: savedPreferences.analytics || false,
-          marketing: savedPreferences.marketing || false,
-          functional: savedPreferences.functional || false
-        });
+        const savedPreferences = localStorage.getItem('cookiePreferences');
+        if (savedPreferences) {
+          setPreferences({
+            ...JSON.parse(savedPreferences),
+            essential: true // Întotdeauna true
+          });
+        }
       } catch (e) {
         console.error('Eroare la încărcarea preferințelor cookie:', e);
       }
@@ -169,7 +174,7 @@ const CookieConsent: React.FC = () => {
               <div>
                 <div className="flex items-center">
                   <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-3">
-                    <Check className="h-5 w-5 text-green-600" />
+                    <Shield className="h-5 w-5 text-green-600" />
                   </div>
                   <div>
                     <h4 className="font-semibold text-gray-900">Cookie-uri Esențiale</h4>
@@ -189,7 +194,7 @@ const CookieConsent: React.FC = () => {
               <div>
                 <div className="flex items-center">
                   <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                    <Info className="h-5 w-5 text-blue-600" />
+                    <BarChart3 className="h-5 w-5 text-blue-600" />
                   </div>
                   <div>
                     <h4 className="font-semibold text-gray-900">Cookie-uri Analitice</h4>
@@ -213,7 +218,7 @@ const CookieConsent: React.FC = () => {
               <div>
                 <div className="flex items-center">
                   <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center mr-3">
-                    <Info className="h-5 w-5 text-purple-600" />
+                    <Target className="h-5 w-5 text-purple-600" />
                   </div>
                   <div>
                     <h4 className="font-semibold text-gray-900">Cookie-uri Marketing</h4>
