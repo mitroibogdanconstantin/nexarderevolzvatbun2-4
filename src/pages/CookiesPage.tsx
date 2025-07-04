@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Cookie, Settings, BarChart3, Target, Shield, Check, X, RefreshCw } from 'lucide-react';
 
@@ -16,10 +16,14 @@ const CookiesPage = () => {
     // Load saved preferences from localStorage
     const savedPreferences = localStorage.getItem('cookiePreferences');
     if (savedPreferences) {
-      setCookiePreferences({
-        ...JSON.parse(savedPreferences),
-        essential: true // Always ensure essential is true
-      });
+      try {
+        setCookiePreferences({
+          ...JSON.parse(savedPreferences),
+          essential: true // Always ensure essential is true
+        });
+      } catch (e) {
+        console.error('Eroare la încărcarea preferințelor cookie:', e);
+      }
     }
   }, []);
 
@@ -44,6 +48,7 @@ const CookiesPage = () => {
     };
     setCookiePreferences(allAccepted);
     localStorage.setItem('cookiePreferences', JSON.stringify(allAccepted));
+    localStorage.setItem('cookieConsent', 'true');
   };
 
   const rejectAll = () => {
@@ -55,6 +60,14 @@ const CookiesPage = () => {
     };
     setCookiePreferences(onlyEssential);
     localStorage.setItem('cookiePreferences', JSON.stringify(onlyEssential));
+    localStorage.setItem('cookieConsent', 'true');
+  };
+
+  // Funcție pentru a deschide banner-ul de cookie-uri
+  const openCookieSettings = () => {
+    if (typeof window !== 'undefined' && window.openCookieSettings) {
+      window.openCookieSettings();
+    }
   };
 
   return (
@@ -294,6 +307,14 @@ const CookiesPage = () => {
               <div className="space-y-4 text-gray-700">
                 <h3 className="text-lg font-semibold">4.1 Prin Site-ul Nostru</h3>
                 <p>Puteți gestiona preferințele cookie-urilor folosind panoul de setări de mai sus sau prin banner-ul de cookie-uri care apare la prima vizită.</p>
+                
+                <button 
+                  onClick={openCookieSettings}
+                  className="bg-nexar-accent text-white px-4 py-2 rounded-lg font-medium hover:bg-nexar-gold transition-colors inline-flex items-center space-x-2 mb-4"
+                >
+                  <Settings className="h-4 w-4" />
+                  <span>Deschide Setări Cookie-uri</span>
+                </button>
                 
                 <h3 className="text-lg font-semibold">4.2 Prin Browser</h3>
                 <p>Majoritatea browser-elor vă permit să controlați cookie-urile prin setările lor:</p>

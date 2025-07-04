@@ -16,6 +16,13 @@ const Footer = () => {
     window.scrollTo(0, 0);
   };
 
+  // Funcție pentru a deschide setările cookie-urilor
+  const openCookieSettings = () => {
+    if (typeof window !== 'undefined' && (window as any).openCookieSettings) {
+      (window as any).openCookieSettings();
+    }
+  };
+
   return (
     <footer className="bg-gray-900 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
@@ -180,6 +187,12 @@ const Footer = () => {
                 <Link to="/cookies" className="text-gray-300 hover:text-white transition-colors" onClick={handleLinkClick}>
                   Cookies
                 </Link>
+                <button 
+                  onClick={openCookieSettings}
+                  className="text-gray-300 hover:text-white transition-colors text-sm text-left"
+                >
+                  Setări Cookie-uri
+                </button>
               </div>
             </div>
             
