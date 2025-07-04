@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Lock, Eye, EyeOff, CheckCircle, AlertTriangle, Home, LogIn } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { auth, supabase } from '../lib/supabase';
 
 const PasswordResetPage = () => {
   const [password, setPassword] = useState('');
@@ -18,12 +18,9 @@ const PasswordResetPage = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
     
-    // Verificăm dacă avem un token valid în URL
-    const params = new URLSearchParams(location.search);
-    const token = params.get('token');
-    const type = params.get('type');
-    
-    if (!token || type !== 'recovery') {
+    // Verificăm dacă avem un hash valid în URL
+    const hash = location.hash;
+    if (!hash || !hash.includes('type=recovery')) {
       setError('Link invalid sau expirat. Te rugăm să soliciți un nou link de resetare a parolei.');
     }
   }, [location]);
@@ -60,12 +57,18 @@ const PasswordResetPage = () => {
       setIsResetting(true);
       setError(null);
       
-      // Obținem token-ul din URL
-      const params = new URLSearchParams(location.search);
-      const token = params.get('token');
+      // Verificăm dacă avem o sesiune validă
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
       
-      if (!token) {
-        setError('Link invalid sau expirat. Te rugăm să soliciți un nou link de resetare a parolei.');
+      if (sessionError) {
+        console.error('Error getting session:', sessionError);
+        setError('Sesiune invalidă. Te rugăm să soliciți un nou link de resetare a parolei.');
+        setIsResetting(false);
+        return;
+      }
+      
+      if (!sessionData.session) {
+        setError('Sesiune invalidă sau expirată. Te rugăm să soliciți un nou link de resetare a parolei.');
         setIsResetting(false);
         return;
       }
@@ -105,7 +108,7 @@ const PasswordResetPage = () => {
           {/* Logo */}
           <div className="flex justify-center mb-6">
             <img 
-            loading="lazy"
+              loading="lazy"
               src="/Nexar - logo_black & red.png" 
               alt="Nexar Logo" 
               className="h-24 w-auto"

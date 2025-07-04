@@ -41,7 +41,7 @@ export const deleteCookie = (name: string): void => {
 // Funcție pentru a salva preferințele cookie-urilor
 export const savePreferences = (preferences: CookiePreferences): void => {
   localStorage.setItem('cookiePreferences', JSON.stringify(preferences));
-  localStorage.setItem('cookieConsentGiven', 'true');
+  localStorage.setItem('cookieConsent', 'true');
   
   // Setăm cookie-urile conform preferințelor
   setCookie('essential', 'true', 365); // Esențiale sunt întotdeauna true
@@ -92,7 +92,7 @@ export const loadPreferences = (): CookiePreferences => {
 
 // Funcție pentru a verifica dacă utilizatorul a dat consimțământul
 export const hasConsent = (): boolean => {
-  return localStorage.getItem('cookieConsentGiven') === 'true';
+  return localStorage.getItem('cookieConsent') === 'true';
 };
 
 // Funcție pentru a verifica dacă un anumit tip de cookie este permis
