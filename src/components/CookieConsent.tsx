@@ -102,6 +102,11 @@ const CookieConsent: React.FC = () => {
   // Expunem funcția global pentru a putea fi accesată din alte componente
   useEffect(() => {
     (window as any).openCookieSettings = openCookieSettings;
+    
+    return () => {
+      // Curățăm funcția globală la demontarea componentei
+      delete (window as any).openCookieSettings;
+    };
   }, []);
 
   if (!isVisible) return null;
