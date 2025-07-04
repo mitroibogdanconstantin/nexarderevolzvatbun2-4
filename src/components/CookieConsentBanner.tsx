@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { X, Check, Settings, Cookie } from 'lucide-react';
+import { savePreferences, loadPreferences, hasConsent, activateTracking } from '../lib/cookieManager';
 
 interface CookiePreferences {
   essential: boolean;
@@ -21,7 +22,7 @@ const CookieConsentBanner: React.FC = () => {
 
   useEffect(() => {
     // Verificăm dacă utilizatorul a setat deja preferințele
-    const consentGiven = localStorage.getItem('cookieConsentGiven');
+    const consentGiven = hasConsent();
     
     if (!consentGiven) {
       // Arătăm banner-ul după 1 secundă pentru o experiență mai bună
@@ -32,13 +33,11 @@ const CookieConsentBanner: React.FC = () => {
       return () => clearTimeout(timer);
     } else {
       // Încărcăm preferințele salvate
-      const savedPreferences = localStorage.getItem('cookiePreferences');
-      if (savedPreferences) {
-        setPreferences({
-          ...JSON.parse(savedPreferences),
-          essential: true // Esențiale sunt întotdeauna activate
-        });
-      }
+      const savedPreferences = loadPreferences();
+      setPreferences(savedPreferences);
+      
+      // Activăm cookie-urile conform preferințelor
+      activateTracking(savedPreferences);
     }
   }, []);
 
@@ -51,12 +50,9 @@ const CookieConsentBanner: React.FC = () => {
     };
     
     setPreferences(allAccepted);
-    localStorage.setItem('cookiePreferences', JSON.stringify(allAccepted));
-    localStorage.setItem('cookieConsentGiven', 'true');
+    savePreferences(allAccepted);
+    activateTracking(allAccepted);
     setIsVisible(false);
-    
-    // Aici ai putea activa scripturile pentru analytics, marketing, etc.
-    activateCookies(allAccepted);
   };
 
   const handleRejectAll = () => {
@@ -68,18 +64,15 @@ const CookieConsentBanner: React.FC = () => {
     };
     
     setPreferences(essentialOnly);
-    localStorage.setItem('cookiePreferences', JSON.stringify(essentialOnly));
-    localStorage.setItem('cookieConsentGiven', 'true');
+    savePreferences(essentialOnly);
+    activateTracking(essentialOnly);
     setIsVisible(false);
   };
 
   const handleSavePreferences = () => {
-    localStorage.setItem('cookiePreferences', JSON.stringify(preferences));
-    localStorage.setItem('cookieConsentGiven', 'true');
+    savePreferences(preferences);
+    activateTracking(preferences);
     setIsVisible(false);
-    
-    // Activăm cookie-urile conform preferințelor
-    activateCookies(preferences);
   };
 
   const handlePreferenceChange = (type: keyof CookiePreferences) => {
@@ -89,23 +82,6 @@ const CookieConsentBanner: React.FC = () => {
       ...prev,
       [type]: !prev[type]
     }));
-  };
-
-  const activateCookies = (prefs: CookiePreferences) => {
-    // Aici ai putea implementa logica pentru activarea scripturilor în funcție de preferințe
-    console.log('Activare cookie-uri conform preferințelor:', prefs);
-    
-    // Exemplu: Activare Google Analytics dacă analytics este true
-    if (prefs.analytics) {
-      // window.gtag('consent', 'update', { analytics_storage: 'granted' });
-      console.log('Analytics activat');
-    }
-    
-    // Exemplu: Activare cookie-uri marketing dacă marketing este true
-    if (prefs.marketing) {
-      // window.fbq('consent', 'grant');
-      console.log('Marketing activat');
-    }
   };
 
   if (!isVisible) return null;
@@ -126,7 +102,7 @@ const CookieConsentBanner: React.FC = () => {
               </div>
             </div>
             
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mt-2 md:mt-0">
               <button 
                 onClick={() => setShowPreferences(true)}
                 className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg font-medium hover:bg-gray-300 transition-colors text-sm flex items-center justify-center"
@@ -193,6 +169,7 @@ const CookieConsentBanner: React.FC = () => {
                 className={`w-10 h-5 rounded-full flex items-center transition-colors ${
                   preferences.analytics ? 'bg-nexar-accent justify-end' : 'bg-gray-300 justify-start'
                 } px-0.5`}
+                aria-label={preferences.analytics ? 'Dezactivează cookie-uri de analiză' : 'Activează cookie-uri de analiză'}
               >
                 <div className="w-4 h-4 bg-white rounded-full"></div>
               </button>
@@ -209,6 +186,7 @@ const CookieConsentBanner: React.FC = () => {
                 className={`w-10 h-5 rounded-full flex items-center transition-colors ${
                   preferences.marketing ? 'bg-nexar-accent justify-end' : 'bg-gray-300 justify-start'
                 } px-0.5`}
+                aria-label={preferences.marketing ? 'Dezactivează cookie-uri de marketing' : 'Activează cookie-uri de marketing'}
               >
                 <div className="w-4 h-4 bg-white rounded-full"></div>
               </button>
@@ -225,23 +203,24 @@ const CookieConsentBanner: React.FC = () => {
                 className={`w-10 h-5 rounded-full flex items-center transition-colors ${
                   preferences.functional ? 'bg-nexar-accent justify-end' : 'bg-gray-300 justify-start'
                 } px-0.5`}
+                aria-label={preferences.functional ? 'Dezactivează cookie-uri funcționale' : 'Activează cookie-uri funcționale'}
               >
                 <div className="w-4 h-4 bg-white rounded-full"></div>
               </button>
             </div>
           </div>
           
-          <div className="flex justify-end space-x-3">
+          <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3">
             <button 
               onClick={handleRejectAll}
-              className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg font-medium hover:bg-gray-300 transition-colors text-sm flex items-center"
+              className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg font-medium hover:bg-gray-300 transition-colors text-sm flex items-center justify-center"
             >
               <X className="h-4 w-4 mr-2" />
               Doar esențiale
             </button>
             <button 
               onClick={handleAcceptAll}
-              className="px-4 py-2 bg-gray-800 text-white rounded-lg font-medium hover:bg-gray-700 transition-colors text-sm flex items-center"
+              className="px-4 py-2 bg-gray-800 text-white rounded-lg font-medium hover:bg-gray-700 transition-colors text-sm flex items-center justify-center"
             >
               <Check className="h-4 w-4 mr-2" />
               Accept toate
