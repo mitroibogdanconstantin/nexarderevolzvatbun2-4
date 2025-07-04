@@ -21,6 +21,7 @@ import FixSupabasePage from "./pages/FixSupabasePage";
 import AboutPage from "./pages/AboutPage";
 import ContactPage from "./pages/ContactPage";
 import PasswordResetPage from "./pages/PasswordResetPage";
+import CookieConsentBanner from "./components/CookieConsentBanner";
 
 // Scroll to top on route change
 function ScrollToTop() {
@@ -107,6 +108,7 @@ function AppContent() {
 					</Routes>
 				</main>
 				<Footer />
+				<CookieConsentBanner />
 			</div>
 		</>
 	);
